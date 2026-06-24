@@ -2,7 +2,9 @@ package payment;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.util.Scanner;
 
 public class BankPayment implements Payment {
     
@@ -15,21 +17,36 @@ public class BankPayment implements Payment {
     private LocalDate dueDate;
     private LocalDate paymentDate;
     
-    
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    // Default constructor
+    // Construtor padrão
     public BankPayment() {}
 
-    // Constructor to receive details from the Menu selection
-    public BankPayment(String clientName, String serviceName, float serviceValue, String dueDateStr, String paymentDateStr) {
+    // Novo construtor adaptado para capturar as datas internamente
+    public BankPayment(String clientName, String serviceName, float serviceValue, Scanner sc) {
         this.clientName = clientName;
         this.serviceName = serviceName;
         this.originalValue = serviceValue;
         
+        System.out.print("Enter due date (dd/mm/yyyy): ");
+        String dueDateStr = sc.nextLine().trim();
+        System.out.print("Enter actual payment date (dd/mm/yyyy): ");
+        String paymentDateStr = sc.nextLine().trim();
         
-        this.dueDate = LocalDate.parse(dueDateStr, FORMATTER);
-        this.paymentDate = LocalDate.parse(paymentDateStr, FORMATTER);
+        // Faz o parse com try-catch interno para evitar quebras no menu principal
+        try {
+            this.dueDate = LocalDate.parse(dueDateStr, FORMATTER);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid due date format! Defaulting to today.");
+            this.dueDate = LocalDate.now();
+        }
+
+        try {
+            this.paymentDate = LocalDate.parse(paymentDateStr, FORMATTER);
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid payment date format! Defaulting to today.");
+            this.paymentDate = LocalDate.now();
+        }
     }
 
     @Override
@@ -44,12 +61,9 @@ public class BankPayment implements Payment {
 
     @Override
     public void paymentCalc() {
-        // Check if the payment date is after the due date
         if (paymentDate.isAfter(dueDate)) {
-            // Calculate how many days late it is
             long daysLate = ChronoUnit.DAYS.between(dueDate, paymentDate);
             
-            // Calculate 2% flat fine + 0.1% per day interest
             float flatFine = this.originalValue * 0.02f;
             float dailyInterest = this.originalValue * (0.001f * daysLate);
             
@@ -58,7 +72,6 @@ public class BankPayment implements Payment {
             
             System.out.println("Notice: Payment is " + daysLate + " day(s) late. Fees applied.");
         } else {
-            // No fines if paid on time
             this.fineAmount = 0.00f;
             this.finalValue = this.originalValue;
         }

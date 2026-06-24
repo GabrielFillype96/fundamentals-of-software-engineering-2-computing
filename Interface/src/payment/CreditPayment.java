@@ -1,5 +1,7 @@
 package payment;
 
+import java.util.Scanner;
+
 public class CreditPayment implements Payment {
     
     private String clientName;
@@ -10,24 +12,30 @@ public class CreditPayment implements Payment {
     private int installments;
     private final static float CREDIT_FEE = 0.05f;
 
-    // Default constructor
+    // Construtor padrão
     public CreditPayment() {}
 
-    // Constructor to receive details from the Menu selection
-    public CreditPayment(String clientName, String serviceName, float serviceValue, int installments) {
+    // Construtor corrigido com Validação Estrita (do-while)
+    public CreditPayment(String clientName, String serviceName, float serviceValue, Scanner sc) {
         this.clientName = clientName;
         this.serviceName = serviceName;
         this.originalValue = serviceValue;
         
-        
-        if (installments < 1) {
-            this.installments = 1;
-        } else if (installments > 3) {
-            this.installments = 3;
-            System.out.println("Notice: Maximum allowed installments is 3x. Setting to 3x.");
-        } else {
-            this.installments = installments;
-        }
+        boolean valid = false;
+        do {
+            System.out.print("Enter number of installments (1 to 3): ");
+            try {
+                int input = Integer.parseInt(sc.nextLine());
+                if (input >= 1 && input <= 3) {
+                    this.installments = input;
+                    valid = true; // Define como verdadeiro para sair do laço
+                } else {
+                    System.out.println("Error: The number of installments must be between 1 and 3.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid format! Please enter a valid number.");
+            }
+        } while (!valid); // Enquanto não for válido, repete a pergunta
     }
 
     @Override
@@ -43,7 +51,6 @@ public class CreditPayment implements Payment {
 
     @Override
     public void paymentCalc() {
-        // Credit card payment adds a 5% administrative/processing fee
         this.feeAmount = this.originalValue * CREDIT_FEE;
         this.finalValue = this.originalValue + this.feeAmount;
     }
