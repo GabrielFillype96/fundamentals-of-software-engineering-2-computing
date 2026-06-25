@@ -35,7 +35,7 @@ public class CreditPayment implements Payment {
             } catch (NumberFormatException e) {
                 System.out.println("Invalid format! Please enter a valid number.");
             }
-        } while (!valid); // Enquanto não for válido, repete a pergunta
+        } while (!valid); 
     }
 
     @Override
